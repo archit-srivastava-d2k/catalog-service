@@ -1,5 +1,5 @@
 import type { Category } from "./category-types";
-import  CategoryModel  from "./catagory-model";
+import  CategoryModel  from "./category-model";
 
 export class CategoryService {
     async create(category: Category) {
