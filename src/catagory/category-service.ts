@@ -6,4 +6,24 @@ export class CategoryService {
         const newCategory = new CategoryModel(category);
         return newCategory.save();
     }
+
+    async getAll() {
+        return await CategoryModel.find();
+    }
+
+    async getById(id: string) {
+        return await CategoryModel.findById(id);
+    }
+
+    async update(id: string, category: Category) {
+        return await CategoryModel.findByIdAndUpdate(
+            id,
+            { $set: category },
+            { new: true },
+        );
+    }
+
+    async delete(id: string) {
+        return await CategoryModel.findByIdAndDelete(id);
+    }
 }
