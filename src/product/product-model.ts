@@ -12,7 +12,7 @@ const attributeValueSchema = new mongoose.Schema({
 const priceConfigurationSchema = new mongoose.Schema({
     priceType: {
         type: String,
-        enum: ["base", "aditional"],
+        enum: ["base", "additional"],
     },
     availableOptions: {
         type: Map,
