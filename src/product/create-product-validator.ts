@@ -13,9 +13,5 @@ export default [
     body("attributes").exists().withMessage("Attributes field is required"),
     body("tenantId").exists().withMessage("Tenant id field is required"),
     body("categoryId").exists().withMessage("Category id field is required"),
-    body("image")
-        .exists()
-        .withMessage("Product image is required")
-        .isString()
-        .withMessage("Product image should be a string"),
+    // image is validated as req.file in the controller after multer processes it
 ];

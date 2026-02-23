@@ -10,7 +10,20 @@ import createProductValidator from "./create-product-validator";
 import logger from "../config/logger";
 
 const router = express.Router();
-const upload = multer();
+
+// Store file in memory so the controller can upload it to Cloudinary
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+    fileFilter: (_req, file, cb) => {
+        const allowed = ["image/jpeg", "image/png", "image/webp"];
+        if (allowed.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error("Only JPEG, PNG, and WebP images are allowed"));
+        }
+    },
+});
 
 const productService = new ProductService();
 const productController = new ProductController(productService, logger);
@@ -19,7 +32,7 @@ router.post(
     "/",
     authenticate,
     canAccess([Roles.ADMIN, Roles.MANAGER]),
-    upload.none(), // parses multipart/form-data text fields
+    upload.single("image"), // parses multipart/form-data and stores image in memory
     createProductValidator,
     asyncWrapper(productController.create),
 );

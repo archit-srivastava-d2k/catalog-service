@@ -5,6 +5,7 @@ import createHttpError from "http-errors";
 import { Logger } from "winston";
 import { ProductService } from "./product-service";
 import { Product } from "./product-types";
+import { uploadToCloudinary } from "../common/services/cloudinaryStorage";
 
 export class ProductController {
     constructor(
@@ -28,7 +29,26 @@ export class ProductController {
             isPublish,
         } = req.body as Product;
 
-        const image = req.body.image as string;
+        // Upload image to Cloudinary
+        if (!req.file) {
+            return next(createHttpError(400, "Product image file is required"));
+        }
+
+        let imageUrl: string;
+        try {
+            const uploadResult = await uploadToCloudinary(
+                req.file.buffer,
+                req.file.mimetype,
+            );
+            imageUrl = uploadResult.secure_url;
+            this.logger.info(`Image uploaded to Cloudinary`, {
+                publicId: uploadResult.public_id,
+            });
+        } catch (err) {
+            return next(
+                createHttpError(500, "Failed to upload image to Cloudinary"),
+            );
+        }
 
         // form-data sends these as strings — parse them to objects
         const priceConfiguration = JSON.parse(
@@ -39,7 +59,7 @@ export class ProductController {
         const product = await this.productService.create({
             name,
             description,
-            image,
+            image: imageUrl,
             priceConfiguration,
             attributes,
             tenantId,
