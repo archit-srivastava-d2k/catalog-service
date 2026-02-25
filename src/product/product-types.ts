@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 export interface PriceConfiguration {
     [key: string]: {
         priceType: "base" | "additional";
@@ -17,6 +19,18 @@ export interface Product {
     priceConfiguration: PriceConfiguration;
     attributes: AttributeValue[];
     tenantId: string;
-    categoryId: string;
+    categoryId: mongoose.Types.ObjectId;
     isPublish?: boolean;
+}
+
+export interface ProductFilter {
+    tenantId?: string;
+    categoryId?: mongoose.Types.ObjectId;
+    isPublish?: boolean;
+    q?: string;
+}
+
+export interface PaginationQuery {
+    page: number;
+    limit: number;
 }

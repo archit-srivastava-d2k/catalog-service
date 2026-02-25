@@ -29,6 +29,13 @@ const upload = multer({
 const productService = new ProductService();
 const productController = new ProductController(productService, logger);
 
+router.get(
+    "/",
+    authenticate,
+    canAccess([Roles.ADMIN, Roles.MANAGER]),
+    asyncWrapper(productController.getAll),
+);
+
 router.post(
     "/",
     authenticate,
@@ -45,6 +52,20 @@ router.patch(
     upload.single("image"), // image is optional on update
     updateProductValidator,
     asyncWrapper(productController.update),
+);
+
+router.get(
+    "/:productId",
+    authenticate,
+    canAccess([Roles.ADMIN, Roles.MANAGER]),
+    asyncWrapper(productController.getSingle),
+);
+
+router.delete(
+    "/:productId",
+    authenticate,
+    canAccess([Roles.ADMIN, Roles.MANAGER]),
+    asyncWrapper(productController.deleteProduct),
 );
 
 export default router;

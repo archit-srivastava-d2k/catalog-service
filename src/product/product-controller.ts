@@ -2,6 +2,7 @@ import { NextFunction, Response } from "express";
 import { Request } from "express-jwt";
 import { validationResult } from "express-validator";
 import createHttpError from "http-errors";
+import mongoose from "mongoose";
 import { Logger } from "winston";
 import { ProductService } from "./product-service";
 import { Product } from "./product-types";
@@ -20,6 +21,9 @@ export class ProductController {
     ) {
         this.create = this.create.bind(this);
         this.update = this.update.bind(this);
+        this.getAll = this.getAll.bind(this);
+        this.getSingle = this.getSingle.bind(this);
+        this.deleteProduct = this.deleteProduct.bind(this);
     }
 
     async create(req: Request, res: Response, next: NextFunction) {
@@ -185,5 +189,97 @@ export class ProductController {
 
         this.logger.info(`Updated product`, { id: updated?._id });
         res.json({ id: updated?._id });
+    }
+
+    async getAll(req: Request, res: Response, next: NextFunction) {
+        const authReq = req as unknown as AuthRequest;
+
+        const { tenantId, categoryId, isPublish, q } = req.query;
+
+        // For managers, always scope to their own tenant
+        const effectiveTenantId =
+            authReq.auth.role === Roles.MANAGER
+                ? authReq.auth.tenant?.id
+                : (tenantId as string | undefined);
+
+        const filter = {
+            ...(effectiveTenantId && { tenantId: effectiveTenantId }),
+            ...(categoryId && {
+                categoryId: new mongoose.Types.ObjectId(
+                    categoryId as string,
+                ),
+            }),
+            // Only filter by isPublish when explicitly "true"; otherwise show all products
+            ...(isPublish === "true" && { isPublish: true }),
+            ...(q && { q: q as string }),
+        };
+
+        const page = Math.max(1, parseInt(req.query.page as string) || 1);
+        const limit = Math.max(
+            1,
+            Math.min(100, parseInt(req.query.limit as string) || 10),
+        );
+
+        const result = await this.productService.getAll(filter, { page, limit });
+
+        this.logger.info(`Fetched product list`, { filter, page, limit });
+        res.json(result);
+    }
+
+    async getSingle(req: Request, res: Response, next: NextFunction) {
+        const { productId } = req.params;
+
+        const product = await this.productService.getById(productId);
+        if (!product) {
+            return next(createHttpError(404, "Product not found"));
+        }
+
+        this.logger.info(`Fetched product`, { id: product._id });
+        res.json(product);
+    }
+
+    async deleteProduct(req: Request, res: Response, next: NextFunction) {
+        const { productId } = req.params;
+
+        const product = await this.productService.getById(productId);
+        if (!product) {
+            return next(createHttpError(404, "Product not found"));
+        }
+
+        // Managers can only delete their own tenant's products
+        const authReq = req as unknown as AuthRequest;
+        if (authReq.auth.role === Roles.MANAGER) {
+            if (product.tenantId !== authReq.auth.tenant?.id) {
+                return next(
+                    createHttpError(
+                        403,
+                        "You are not allowed to delete this product",
+                    ),
+                );
+            }
+        }
+
+        // Delete the image from Cloudinary if present
+        if (product.image) {
+            const publicId = extractCloudinaryPublicId(product.image);
+            if (publicId) {
+                try {
+                    await deleteFromCloudinary(publicId);
+                    this.logger.info(`Deleted product image from Cloudinary`, {
+                        publicId,
+                    });
+                } catch (err) {
+                    this.logger.warn(
+                        `Failed to delete product image from Cloudinary`,
+                        { publicId, err },
+                    );
+                }
+            }
+        }
+
+        await this.productService.deleteById(productId);
+
+        this.logger.info(`Deleted product`, { id: productId });
+        res.json({ id: productId });
     }
 }
