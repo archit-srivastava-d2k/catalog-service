@@ -7,6 +7,7 @@ import { Roles } from "../common/constants";
 import { ProductController } from "./product-controller";
 import { ProductService } from "./product-service";
 import createProductValidator from "./create-product-validator";
+import updateProductValidator from "./update-product-validator";
 import logger from "../config/logger";
 
 const router = express.Router();
@@ -35,6 +36,15 @@ router.post(
     upload.single("image"), // parses multipart/form-data and stores image in memory
     createProductValidator,
     asyncWrapper(productController.create),
+);
+
+router.patch(
+    "/:productId",
+    authenticate,
+    canAccess([Roles.ADMIN, Roles.MANAGER]),
+    upload.single("image"), // image is optional on update
+    updateProductValidator,
+    asyncWrapper(productController.update),
 );
 
 export default router;

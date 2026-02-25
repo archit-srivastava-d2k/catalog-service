@@ -6,4 +6,16 @@ export class ProductService {
         const newProduct = new ProductModel(product);
         return newProduct.save();
     }
+
+    async update(productId: string, product: Partial<Product>) {
+        return ProductModel.findByIdAndUpdate(
+            productId,
+            { $set: product },
+            { new: true },
+        );
+    }
+
+    async getById(productId: string) {
+        return ProductModel.findById(productId);
+    }
 }

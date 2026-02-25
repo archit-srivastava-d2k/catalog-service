@@ -34,3 +34,21 @@ export const deleteFromCloudinary = async (
 ): Promise<void> => {
     await cloudinary.uploader.destroy(publicId);
 };
+
+/**
+ * Extracts the Cloudinary public_id from a secure URL.
+ * e.g. https://res.cloudinary.com/demo/image/upload/v1234/catalog-service/abc.jpg
+ *      => "catalog-service/abc"
+ */
+export const extractCloudinaryPublicId = (url: string): string => {
+    const uploadMarker = "/upload/";
+    const idx = url.indexOf(uploadMarker);
+    if (idx === -1) return "";
+    // strip everything up to and including /upload/
+    let path = url.slice(idx + uploadMarker.length);
+    // strip optional version segment (v1234567/)
+    path = path.replace(/^v\d+\//, "");
+    // strip file extension
+    path = path.replace(/\.[^/.]+$/, "");
+    return path;
+};
