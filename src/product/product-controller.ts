@@ -22,6 +22,7 @@ export class ProductController {
         this.create = this.create.bind(this);
         this.update = this.update.bind(this);
         this.getAll = this.getAll.bind(this);
+        this.getPublic = this.getPublic.bind(this);
         this.getSingle = this.getSingle.bind(this);
         this.deleteProduct = this.deleteProduct.bind(this);
     }
@@ -236,6 +237,31 @@ export class ProductController {
 
         this.logger.info(`Fetched product`, { id: product._id });
         res.json(product);
+    }
+
+    // Public endpoint — no auth required, always scoped to isPublish: true
+    async getPublic(req: Request, res: Response, next: NextFunction) {
+        const { tenantId, categoryId, q } = req.query;
+
+        const filter = {
+            isPublish: true,
+            ...(tenantId && { tenantId: tenantId as string }),
+            ...(categoryId && {
+                categoryId: new mongoose.Types.ObjectId(categoryId as string),
+            }),
+            ...(q && { q: q as string }),
+        };
+
+        const page = Math.max(1, parseInt(req.query.page as string) || 1);
+        const limit = Math.max(
+            1,
+            Math.min(100, parseInt(req.query.limit as string) || 10),
+        );
+
+        const result = await this.productService.getAll(filter, { page, limit });
+
+        this.logger.info(`Fetched public product list`, { filter, page, limit });
+        res.json(result);
     }
 
     async deleteProduct(req: Request, res: Response, next: NextFunction) {

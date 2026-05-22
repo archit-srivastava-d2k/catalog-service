@@ -29,6 +29,12 @@ const upload = multer({
 const productService = new ProductService();
 const productController = new ProductController(productService, logger);
 
+// Public route — no auth, returns only published products
+router.get(
+    "/public",
+    asyncWrapper(productController.getPublic),
+);
+
 router.get(
     "/",
     authenticate,
