@@ -28,6 +28,12 @@ const upload = multer({
 const toppingService = new ToppingService();
 const toppingController = new ToppingController(toppingService, logger);
 
+// Public route — no auth, returns only published toppings
+router.get(
+    "/public",
+    asyncWrapper(toppingController.getPublic),
+);
+
 router.get(
     "/",
     authenticate,

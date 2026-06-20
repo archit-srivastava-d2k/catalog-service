@@ -13,6 +13,10 @@ export default [
         .optional()
         .isString()
         .withMessage("Tenant id should be a string"),
+    body("categoryId")
+        .optional()
+        .isString()
+        .withMessage("Category id should be a string"),
     body("isPublish")
         .optional()
         .isBoolean()

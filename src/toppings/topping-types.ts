@@ -3,11 +3,13 @@ export interface Topping {
     image: string;
     price: number;
     tenantId: string;
+    categoryId?: string;
     isPublish?: boolean;
 }
 
 export interface ToppingFilter {
     tenantId?: string;
+    categoryId?: string;
     isPublish?: boolean;
     q?: string;
 }

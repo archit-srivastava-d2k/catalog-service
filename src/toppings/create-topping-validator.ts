@@ -16,5 +16,9 @@ export default [
         .withMessage("Tenant id is required")
         .isString()
         .withMessage("Tenant id should be a string"),
+    body("categoryId")
+        .optional()
+        .isString()
+        .withMessage("Category id should be a string"),
     // image is validated as req.file in the controller after multer processes it
 ];

@@ -27,6 +27,7 @@ export class ToppingService {
         const matchStage: Record<string, unknown> = {};
 
         if (filter.tenantId) matchStage.tenantId = filter.tenantId;
+        if (filter.categoryId) matchStage.categoryId = filter.categoryId;
         if (filter.isPublish !== undefined)
             matchStage.isPublish = filter.isPublish;
         if (filter.q)

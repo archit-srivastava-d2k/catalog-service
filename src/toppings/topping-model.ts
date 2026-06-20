@@ -18,6 +18,12 @@ const toppingSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        categoryId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Category",
+            required: false,
+            default: null,
+        },
         isPublish: {
             type: Boolean,
             required: false,
