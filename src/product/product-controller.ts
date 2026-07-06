@@ -13,11 +13,13 @@ import {
     deleteFromCloudinary,
     extractCloudinaryPublicId,
 } from "../common/services/cloudinaryStorage";
+import { MessageProducerBroker } from "../common/types/broker";
 
 export class ProductController {
     constructor(
         private productService: ProductService,
         private logger: Logger,
+        private messageProducer: MessageProducerBroker,
     ) {
         this.create = this.create.bind(this);
         this.update = this.update.bind(this);
@@ -78,6 +80,14 @@ export class ProductController {
             categoryId,
             isPublish,
         });
+
+        await this.messageProducer.sendMessage(
+            "product",
+            JSON.stringify({
+                id: product._id,
+                priceConfiguration: product.priceConfiguration,
+            }),
+        );
 
         this.logger.info(`Created product`, { id: product._id });
         res.json({ id: product._id });
@@ -187,6 +197,16 @@ export class ProductController {
             productId,
             updatePayload,
         );
+
+        if (updated) {
+            await this.messageProducer.sendMessage(
+                "product",
+                JSON.stringify({
+                    id: updated._id,
+                    priceConfiguration: updated.priceConfiguration,
+                }),
+            );
+        }
 
         this.logger.info(`Updated product`, { id: updated?._id });
         res.json({ id: updated?._id });

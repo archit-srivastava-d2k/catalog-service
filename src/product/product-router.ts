@@ -9,6 +9,7 @@ import { ProductService } from "./product-service";
 import createProductValidator from "./create-product-validator";
 import updateProductValidator from "./update-product-validator";
 import logger from "../config/logger";
+import { createMessageProducerBroker } from "../common/factories/brokerFactory";
 
 const router = express.Router();
 
@@ -25,9 +26,9 @@ const upload = multer({
         }
     },
 });
-
+const broker = createMessageProducerBroker();
 const productService = new ProductService();
-const productController = new ProductController(productService, logger);
+const productController = new ProductController(productService, logger, broker);
 
 // Public route — no auth, returns only published products
 router.get(
