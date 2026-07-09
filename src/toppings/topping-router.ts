@@ -9,6 +9,7 @@ import { ToppingService } from "./topping-service";
 import createToppingValidator from "./create-topping-validator";
 import updateToppingValidator from "./update-topping-validator";
 import logger from "../config/logger";
+import { createMessageProducerBroker } from "../common/factories/brokerFactory";
 
 const router = express.Router();
 
@@ -25,8 +26,9 @@ const upload = multer({
     },
 });
 
+const broker = createMessageProducerBroker();
 const toppingService = new ToppingService();
-const toppingController = new ToppingController(toppingService, logger);
+const toppingController = new ToppingController(toppingService, logger, broker);
 
 // Public route — no auth, returns only published toppings
 router.get(
