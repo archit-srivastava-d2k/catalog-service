@@ -14,7 +14,7 @@ import {
     extractCloudinaryPublicId,
 } from "../common/services/cloudinaryStorage";
 import { MessageProducerBroker } from "../common/types/broker";
-
+import { mapToObject } from "../utils";
 export class ProductController {
     constructor(
         private productService: ProductService,
@@ -85,7 +85,12 @@ export class ProductController {
             "product",
             JSON.stringify({
                 id: product._id,
-                priceConfiguration: product.priceConfiguration,
+                priceConfiguration: mapToObject(
+                    product.priceConfiguration as unknown as Map<
+                        string,
+                        any
+                    >,
+                ),
             }),
         );
 
@@ -203,7 +208,12 @@ export class ProductController {
                 "product",
                 JSON.stringify({
                     id: updated._id,
-                    priceConfiguration: updated.priceConfiguration,
+                    priceConfiguration: mapToObject(
+                        updated.priceConfiguration as unknown as Map<
+                            string,
+                            any
+                        >,
+                    ),
                 }),
             );
         }
